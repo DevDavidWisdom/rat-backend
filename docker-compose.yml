@@ -1,0 +1,161 @@
+services:
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: mdm_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-mdm_redis_pass_2026}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-mdm_redis_pass_2026}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # EMQX MQTT Broker
+  emqx:
+    image: emqx/emqx:5.3.0
+    container_name: mdm_emqx
+    restart: unless-stopped
+    environment:
+      EMQX_NODE__NAME: mdm_broker@127.0.0.1
+      EMQX_DASHBOARD__DEFAULT_USERNAME: admin
+      EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD:-mdm_emqx_2026}
+      EMQX_AUTHORIZATION__NO_MATCH: allow
+      EMQX_AUTHORIZATION__CACHE__ENABLE: "true"
+    ports:
+      - "1883:1883"    # MQTT TCP
+      - "8183:8083"    # MQTT WebSocket (host 8183 -> container 8083)
+      - "8184:8084"    # MQTT WebSocket TLS
+      - "8883:8883"    # MQTT TCP TLS
+      - "18083:18083"  # Dashboard
+    volumes:
+      - emqx_data:/opt/emqx/data
+      - emqx_log:/opt/emqx/log
+    healthcheck:
+      test: ["CMD", "emqx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO Object Storage (S3-compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: mdm_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-mdm_minio_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-mdm_minio_pass_2026}
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # Console
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # InfluxDB for Time-Series Metrics
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: mdm_influxdb
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: mdm_admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD:-mdm_influx_pass_2026}
+      DOCKER_INFLUXDB_INIT_ORG: mdm_org
+      DOCKER_INFLUXDB_INIT_BUCKET: device_telemetry
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN:-mdm_influx_token_2026}
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3 
+
+  # Database Migration (runs once, then exits)
+  db-init:
+    image: postgres:17-alpine
+    container_name: mdm_db_init
+    restart: "no"
+    volumes:
+      - ./infrastructure:/sql
+    entrypoint: >
+      sh -c '
+        echo "Running database migrations..."
+        PGPASSWORD=17ORR8ceETHDPS0IVgAjHjLuW5PfGzZOqbtRCtFeifE76RKjTx1EktAHjTMQvtTY
+        export PGPASSWORD
+        psql -h s8sgs4ooo4ssokggkssks4wk -p 5432 -U postgres -d postgres -f /sql/init-db.sql 2>&1 || true
+        psql -h s8sgs4ooo4ssokggkssks4wk -p 5432 -U postgres -d postgres -f /sql/attendance_tables.sql 2>&1 || true
+        echo "Database migrations complete."
+      '
+
+  # MDM Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mdm_backend
+    restart: unless-stopped
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      emqx:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      # External managed PostgreSQL
+      - DB_HOST=s8sgs4ooo4ssokggkssks4wk
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=17ORR8ceETHDPS0IVgAjHjLuW5PfGzZOqbtRCtFeifE76RKjTx1EktAHjTMQvtTY
+      - DB_NAME=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-mdm_redis_pass_2026}
+      - MQTT_BROKER=emqx
+      - MQTT_DEVICE_BROKER=${MQTT_DEVICE_BROKER:-192.168.0.3}
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=mdm_server
+      - MQTT_PASSWORD=${MQTT_SERVER_PASSWORD:-mdm_mqtt_pass}
+      - JWT_SECRET=${JWT_SECRET:-your_super_secret_jwt_key_change_in_production}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@mdm-system.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin_secure_2026}
+      - ADMIN_ORG_ID=${ADMIN_ORG_ID:-00000000-0000-0000-0000-000000000001}
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_EXTERNAL_ENDPOINT=${MINIO_EXTERNAL_ENDPOINT:-192.168.0.3:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-mdm_minio_admin}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD:-mdm_minio_pass_2026}
+      - MINIO_BUCKET=mdm-files
+      - MINIO_USE_SSL=false
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis_data:
+  emqx_data:
+  emqx_log:
+  minio_data:
+  influxdb_data:
+
+networks:
+  default:
+    name: mdm_network
