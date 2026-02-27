@@ -33,8 +33,8 @@ func NewClient(cfg *Config) (*Client, error) {
 	opts.SetUsername(cfg.Username)
 	opts.SetPassword(cfg.Password)
 	opts.SetAutoReconnect(true)
-	opts.SetConnectRetry(true)
-	opts.SetConnectRetryInterval(5 * time.Second)
+	opts.SetConnectRetry(false)
+	opts.SetConnectTimeout(15 * time.Second)
 	opts.SetKeepAlive(30 * time.Second)
 	opts.SetPingTimeout(10 * time.Second)
 	opts.SetCleanSession(false)
@@ -51,7 +51,10 @@ func NewClient(cfg *Config) (*Client, error) {
 
 func (c *Client) Connect() error {
 	token := c.client.Connect()
-	if token.Wait() && token.Error() != nil {
+	if !token.WaitTimeout(15 * time.Second) {
+		return fmt.Errorf("MQTT connection timeout after 15s")
+	}
+	if token.Error() != nil {
 		return token.Error()
 	}
 	log.Println("MQTT: Connected to broker")
