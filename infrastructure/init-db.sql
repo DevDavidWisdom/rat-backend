@@ -241,6 +241,11 @@ INSERT INTO organizations (id, name, slug) VALUES
 INSERT INTO users (organization_id, email, password_hash, name, role) VALUES 
     ('00000000-0000-0000-0000-000000000001', 'admin@mdm.local', '$2a$10$rPQvGHNqUqHqKqXqXqXqXuYqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXq', 'System Admin', 'super_admin');
 
+-- Create hardcoded system admin user (matches auth_service.go hardcoded admin login)
+INSERT INTO users (id, organization_id, email, password_hash, name, role) VALUES 
+    ('00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000001', 'admin@mdm-system.com', '$2a$10$notusedfordblogin00000000000000000000000000000000000000', 'System Administrator', 'super_admin')
+ON CONFLICT (id) DO NOTHING;
+
 -- Create default policy
 INSERT INTO policies (organization_id, name, description, rules, is_default) VALUES 
     ('00000000-0000-0000-0000-000000000001', 'Default Policy', 'Default device policy', 
