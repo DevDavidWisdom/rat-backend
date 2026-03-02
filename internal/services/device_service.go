@@ -76,10 +76,46 @@ func (s *DeviceService) RegisterDevice(ctx context.Context, req *models.DeviceRe
 		return nil, ErrInvalidEnrollment
 	}
 
-	// Check if device already exists
+	// Check if device already exists — re-enroll instead of rejecting
 	existing, err := s.deviceRepo.GetByDeviceID(ctx, req.DeviceID)
 	if err == nil && existing != nil {
-		return nil, ErrDeviceAlreadyExists
+		// Device already registered — re-issue token and return success
+		// This handles cases where the app lost credentials or was reinstalled
+		deviceToken, err := s.authService.GenerateDeviceToken(existing)
+		if err != nil {
+			return nil, err
+		}
+		existing.DeviceToken = &deviceToken
+		err = s.deviceRepo.UpdateToken(ctx, existing.ID, deviceToken)
+		if err != nil {
+			return nil, err
+		}
+
+		// Update status to online
+		s.deviceRepo.UpdateStatus(ctx, existing.ID, models.DeviceStatusOnline)
+
+		// Build MQTT config for the existing device
+		topicBase := "devices/" + existing.ID.String()
+		mqttConfig := models.MQTTConnectionConfig{
+			Broker:    s.deviceBroker,
+			Port:      s.mqttPort,
+			Username:  existing.ID.String(),
+			Password:  deviceToken,
+			ClientID:  "device_" + existing.ID.String(),
+			UseTLS:    false,
+			TopicBase: topicBase,
+			Topics: models.MQTTTopicsConfig{
+				Commands:  topicBase + "/commands",
+				Telemetry: topicBase + "/telemetry",
+				Responses: topicBase + "/responses",
+			},
+		}
+
+		return &models.DeviceRegistrationResponse{
+			DeviceID:    existing.ID,
+			DeviceToken: deviceToken,
+			MQTTConfig:  mqttConfig,
+		}, nil
 	}
 
 	// Create device
