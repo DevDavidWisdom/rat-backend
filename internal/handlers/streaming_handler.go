@@ -405,6 +405,11 @@ func (h *StreamingHandler) handleViewerMessage(session *StreamSession, msg *Sign
 		// Forward input events to device as JSON
 		deviceConn.WriteJSON(msg)
 
+	case "lock_input", "unlock_input":
+		// Forward input lock/unlock to device
+		deviceConn.WriteJSON(msg)
+		log.Printf("Forwarded %s to device in session %s", msg.Type, session.ID)
+
 	case "quality_change":
 		// Update quality and notify device
 		var quality string
@@ -451,6 +456,12 @@ func (h *StreamingHandler) handleDeviceMessage(session *StreamSession, msg *Sign
 		session.Status = "ended"
 		session.mutex.Unlock()
 
+		if viewerConn != nil {
+			viewerConn.WriteJSON(msg)
+		}
+
+	case "lock_state":
+		// Forward lock state confirmation from device to viewer
 		if viewerConn != nil {
 			viewerConn.WriteJSON(msg)
 		}
