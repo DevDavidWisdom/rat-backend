@@ -141,6 +141,14 @@ type TelemetryReport struct {
 	Longitude        *float64 `json:"longitude,omitempty"`
 	RunningApps      []string `json:"running_apps,omitempty"`
 	AgentVersion     *string  `json:"agent_version,omitempty"`
+
+	// v1.1 extended telemetry
+	WifiSsid      *string `json:"wifi_ssid,omitempty"`
+	WifiRssi      *int    `json:"wifi_rssi,omitempty"`
+	ChargingType  *string `json:"charging_type,omitempty"`
+	ForegroundApp *string `json:"foreground_app,omitempty"`
+	CurrentUrl    *string `json:"current_url,omitempty"`
+	LinkSpeedMbps *int    `json:"link_speed_mbps,omitempty"`
 }
 
 // ========== Group DTOs ==========

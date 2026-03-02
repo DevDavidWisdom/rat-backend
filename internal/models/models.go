@@ -164,6 +164,14 @@ type Device struct {
 	Latitude         *float64 `json:"latitude,omitempty" db:"latitude"`
 	Longitude        *float64 `json:"longitude,omitempty" db:"longitude"`
 
+	// v1.1 extended telemetry cache
+	WifiSsid      *string `json:"wifi_ssid,omitempty" db:"wifi_ssid"`
+	WifiRssi      *int    `json:"wifi_rssi,omitempty" db:"wifi_rssi"`
+	ChargingType  *string `json:"charging_type,omitempty" db:"charging_type"`
+	ForegroundApp *string `json:"foreground_app,omitempty" db:"foreground_app"`
+	CurrentUrl    *string `json:"current_url,omitempty" db:"current_url"`
+	LinkSpeedMbps *int    `json:"link_speed_mbps,omitempty" db:"link_speed_mbps"`
+
 	// Extracted account info
 	GoogleEmails []string                 `json:"google_emails,omitempty" db:"google_emails"`
 	PhoneNumbers []string                 `json:"phone_numbers,omitempty" db:"phone_numbers"`

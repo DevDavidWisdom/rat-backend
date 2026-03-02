@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS attendance_zones (
     center_lat DECIMAL(10, 8),
     center_lng DECIMAL(11, 8),
     is_active BOOLEAN DEFAULT true,
+    wifi_fingerprints JSONB DEFAULT '[]'::jsonb,
+    wifi_match_threshold DECIMAL(5,2) DEFAULT 0.6,
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -31,6 +33,7 @@ CREATE TABLE IF NOT EXISTS attendance_sessions (
     timeout_seconds INTEGER DEFAULT 30,
     initiated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     completed_at TIMESTAMP WITH TIME ZONE,
+    retake_count INTEGER DEFAULT 1,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -48,6 +51,14 @@ CREATE TABLE IF NOT EXISTS attendance_records (
     connection_type VARCHAR(50),
     response_time_ms INTEGER,
     responded_at TIMESTAMP WITH TIME ZONE,
+    cluster_status VARCHAR(50),
+    cluster_chain_device UUID,
+    cluster_distance DECIMAL(10,2),
+    avg_latitude DECIMAL(10,8),
+    avg_longitude DECIMAL(11,8),
+    avg_gps_accuracy DECIMAL(8,2),
+    raw_status VARCHAR(50),
+    retake_number INTEGER DEFAULT 1,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(session_id, device_id)
 );
