@@ -168,6 +168,21 @@ func main() {
 		return c.JSON(fiber.Map{"status": "healthy", "database": "connected", "mqtt": mqttClient != nil && mqttClient.IsConnected()})
 	})
 
+	// ── Public APK download — served from Postgres (no GitHub / external CDN) ──
+	app.Get("/download/agent", func(c *fiber.Ctx) error {
+		var data []byte
+		var filename string
+		err := db.Pool.QueryRow(c.Context(),
+			"SELECT data, filename FROM apk_store ORDER BY created_at DESC LIMIT 1",
+		).Scan(&data, &filename)
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "no APK available"})
+		}
+		c.Set("Content-Type", "application/vnd.android.package-archive")
+		c.Set("Content-Disposition", "attachment; filename=\""+filename+"\"")
+		return c.Send(data)
+	})
+
 	api := app.Group("/api/v1")
 
 	auth := api.Group("/auth")
