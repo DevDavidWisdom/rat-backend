@@ -21,7 +21,7 @@ RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /app
 
 COPY --from=builder /app/mdm-server .
-COPY static/mdm-agent.apk ./static/mdm-agent.apk
+COPY mdm-agent.apk ./static/mdm-agent.apk
 
 EXPOSE 8080
 
