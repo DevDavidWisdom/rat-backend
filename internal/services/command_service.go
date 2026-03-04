@@ -61,6 +61,7 @@ func (s *CommandService) CreateCommand(ctx context.Context, deviceID uuid.UUID, 
 	supersedeTypes := map[string]bool{
 		"START_STREAMING": true,
 		"START_LISTEN":    true,
+		"START_AUDIO":     true,
 		"START_TRACKING":  true,
 	}
 	if supersedeTypes[req.CommandType] {
@@ -79,7 +80,7 @@ func (s *CommandService) CreateCommand(ctx context.Context, deviceID uuid.UUID, 
 	if cmd.TimeoutSeconds == 0 {
 		// Use shorter timeout for real-time commands
 		switch req.CommandType {
-		case "START_STREAMING", "START_LISTEN", "START_TRACKING":
+		case "START_STREAMING", "START_LISTEN", "START_AUDIO", "START_TRACKING":
 			cmd.TimeoutSeconds = 30
 		default:
 			cmd.TimeoutSeconds = 300 // Default 5 minutes
