@@ -298,6 +298,11 @@ func (h *CommandHandler) GetDeviceAccounts(c *fiber.Ctx) error {
 	return h.quickCommand(c, "GET_DEVICE_ACCOUNTS", nil)
 }
 
+// ExtractIssam sends a command to read the ISSAM agent_id from the device
+func (h *CommandHandler) ExtractIssam(c *fiber.Ctx) error {
+	return h.quickCommand(c, "EXTRACT_ISSAM", nil)
+}
+
 func (h *CommandHandler) quickCommand(c *fiber.Ctx, cmdType string, payload map[string]interface{}) error {
 	deviceID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

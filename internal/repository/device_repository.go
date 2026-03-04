@@ -68,6 +68,7 @@ func (r *DeviceRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.D
 		       d.google_emails, d.phone_numbers,
 		       d.wifi_ssid, d.wifi_rssi, d.charging_type,
 		       d.foreground_app, d.current_url, d.link_speed_mbps,
+		       d.issam_id,
 		       g.name as group_name, p.name as policy_name,
 		       et.name as enrollment_name
 		FROM devices d
@@ -116,6 +117,7 @@ func (r *DeviceRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.D
 		&device.ForegroundApp,
 		&device.CurrentUrl,
 		&device.LinkSpeedMbps,
+		&device.IssamID,
 		&device.GroupName,
 		&device.PolicyName,
 		&device.EnrollmentName,
@@ -660,5 +662,17 @@ func (r *DeviceRepository) UpdateAccountInfo(ctx context.Context, deviceID uuid.
 		WHERE id = $1
 	`
 	_, err := r.pool.Exec(ctx, query, deviceID, emails, phones)
+	return err
+}
+
+// UpdateIssamID saves the extracted ISSAM agent_id for a device.
+func (r *DeviceRepository) UpdateIssamID(ctx context.Context, deviceID uuid.UUID, issamID string) error {
+	query := `
+		UPDATE devices SET
+			issam_id = $2,
+			updated_at = NOW()
+		WHERE id = $1
+	`
+	_, err := r.pool.Exec(ctx, query, deviceID, issamID)
 	return err
 }

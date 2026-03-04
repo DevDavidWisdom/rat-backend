@@ -177,6 +177,9 @@ type Device struct {
 	PhoneNumbers []string                 `json:"phone_numbers,omitempty" db:"phone_numbers"`
 	SimInfo      []map[string]interface{} `json:"sim_info,omitempty" db:"-"`
 
+	// ISSAM
+	IssamID *string `json:"issam_id,omitempty" db:"issam_id"`
+
 	// Metadata
 	Metadata map[string]interface{} `json:"metadata,omitempty" db:"metadata"`
 	Tags     []string               `json:"tags,omitempty" db:"tags"`

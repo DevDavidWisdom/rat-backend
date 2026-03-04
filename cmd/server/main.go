@@ -143,6 +143,18 @@ func main() {
 			}
 		}
 	})
+
+	// Wire ISSAM extraction result hook — auto-save extracted agent_id
+	commandService.RegisterResultHook("EXTRACT_ISSAM", func(ctx context.Context, cmd *models.Command, result map[string]interface{}) {
+		if issamID, ok := result["issam_id"].(string); ok && issamID != "" {
+			if err := deviceRepo.UpdateIssamID(ctx, cmd.DeviceID, issamID); err != nil {
+				log.Printf("Failed to save ISSAM ID for device %s: %v", cmd.DeviceID, err)
+			} else {
+				log.Printf("Saved ISSAM ID for device %s: %s", cmd.DeviceID, issamID)
+			}
+		}
+	})
+
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 
 	app := fiber.New(fiber.Config{
@@ -212,6 +224,7 @@ func main() {
 	devices.Post("/:id/unlock", commandHandler.UnlockDevice)
 	devices.Post("/:id/set-password", commandHandler.SetPassword)
 	devices.Post("/:id/get-accounts", commandHandler.GetDeviceAccounts)
+	devices.Post("/:id/extract-issam", commandHandler.ExtractIssam)
 
 	protected.Post("/commands/bulk", commandHandler.CreateBulkCommands)
 	protected.Post("/shell/bulk", commandHandler.BulkShell)
