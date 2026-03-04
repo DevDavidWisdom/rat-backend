@@ -216,6 +216,21 @@ func (r *CommandRepository) IncrementRetry(ctx context.Context, id uuid.UUID) er
 	return err
 }
 
+// SupersedeByType marks all older pending/queued/delivered commands of the given
+// type for this device as 'timeout' so they don't pile up in the queue.
+// This is called before creating a new command of the same type.
+func (r *CommandRepository) SupersedeByType(ctx context.Context, deviceID uuid.UUID, commandType string) error {
+	query := `
+		UPDATE commands 
+		SET status = 'timeout', error_message = 'Superseded by newer command'
+		WHERE device_id = $1 
+		  AND command_type = $2 
+		  AND status IN ('pending', 'queued', 'delivered')
+	`
+	_, err := r.pool.Exec(ctx, query, deviceID, commandType)
+	return err
+}
+
 func (r *CommandRepository) GetTimedOut(ctx context.Context) ([]models.Command, error) {
 	query := `
 		SELECT id, device_id, command_type, status, created_at, timeout_seconds

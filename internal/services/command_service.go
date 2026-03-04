@@ -55,6 +55,18 @@ func (s *CommandService) CreateCommand(ctx context.Context, deviceID uuid.UUID, 
 		return nil, err
 	}
 
+	// Auto-supersede older pending commands of the same type for this device.
+	// Prevents duplicate START_STREAMING / START_LISTEN / START_TRACKING from
+	// piling up in the queue (the dashboard retries every 6s).
+	supersedeTypes := map[string]bool{
+		"START_STREAMING": true,
+		"START_LISTEN":    true,
+		"START_TRACKING":  true,
+	}
+	if supersedeTypes[req.CommandType] {
+		_ = s.commandRepo.SupersedeByType(ctx, deviceID, req.CommandType)
+	}
+
 	cmd := &models.Command{
 		DeviceID:       deviceID,
 		IssuedBy:       issuedBy,
@@ -65,7 +77,13 @@ func (s *CommandService) CreateCommand(ctx context.Context, deviceID uuid.UUID, 
 	}
 
 	if cmd.TimeoutSeconds == 0 {
-		cmd.TimeoutSeconds = 300 // Default 5 minutes
+		// Use shorter timeout for real-time commands
+		switch req.CommandType {
+		case "START_STREAMING", "START_LISTEN", "START_TRACKING":
+			cmd.TimeoutSeconds = 30
+		default:
+			cmd.TimeoutSeconds = 300 // Default 5 minutes
+		}
 	}
 
 	err = s.commandRepo.Create(ctx, cmd)
