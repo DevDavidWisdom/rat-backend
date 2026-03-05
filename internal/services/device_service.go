@@ -205,6 +205,11 @@ func (s *DeviceService) ListDevices(ctx context.Context, filter *models.DeviceFi
 		return nil, err
 	}
 
+	// Ensure non-nil slice so JSON marshals as [] not null
+	if devices == nil {
+		devices = []models.Device{}
+	}
+
 	totalPages := int(total) / filter.PageSize
 	if int(total)%filter.PageSize > 0 {
 		totalPages++
