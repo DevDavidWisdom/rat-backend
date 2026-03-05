@@ -268,6 +268,7 @@ func main() {
 
 	deviceAPI := api.Group("/agent", authMiddleware.DeviceAuth())
 	deviceAPI.Post("/telemetry", deviceHandler.ReportTelemetry)
+	deviceAPI.Post("/issam", deviceHandler.ReportIssam)
 	deviceAPI.Get("/commands/pending", commandHandler.GetPendingCommands)
 	deviceAPI.Post("/commands/:id/result", commandHandler.ReportCommandResult)
 

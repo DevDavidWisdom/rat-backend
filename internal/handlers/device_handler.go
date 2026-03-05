@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -286,4 +287,29 @@ func (h *DeviceHandler) ReportTelemetry(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(models.SuccessResponse(fiber.Map{"received": true}))
+}
+
+// ReportIssam handles direct ISSAM ID push from devices (called immediately on capture)
+func (h *DeviceHandler) ReportIssam(c *fiber.Ctx) error {
+	deviceIdentity := c.Locals("device_identity").(string)
+
+	var body struct {
+		IssamID string `json:"issam_id"`
+	}
+	if err := c.BodyParser(&body); err != nil || body.IssamID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse(
+			"INVALID_REQUEST",
+			"issam_id is required",
+		))
+	}
+
+	if err := h.deviceService.UpdateIssamID(c.Context(), deviceIdentity, body.IssamID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse(
+			"ISSAM_UPDATE_FAILED",
+			err.Error(),
+		))
+	}
+
+	log.Printf("Device %s reported ISSAM ID: %s", deviceIdentity, body.IssamID)
+	return c.JSON(models.SuccessResponse(fiber.Map{"saved": true}))
 }

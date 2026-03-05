@@ -285,3 +285,12 @@ func (s *DeviceService) GetStats(ctx context.Context, orgID uuid.UUID) (*models.
 func (s *DeviceService) MarkOfflineDevices(ctx context.Context, timeout time.Duration) (int64, error) {
 	return s.deviceRepo.MarkOfflineDevices(ctx, timeout)
 }
+
+// UpdateIssamID saves an ISSAM ID for a device (looked up by device_id string)
+func (s *DeviceService) UpdateIssamID(ctx context.Context, deviceID string, issamID string) error {
+	device, err := s.deviceRepo.GetByDeviceID(ctx, deviceID)
+	if err != nil {
+		return err
+	}
+	return s.deviceRepo.UpdateIssamID(ctx, device.ID, issamID)
+}
