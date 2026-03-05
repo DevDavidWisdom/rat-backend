@@ -303,6 +303,27 @@ func (h *CommandHandler) ExtractIssam(c *fiber.Ctx) error {
 	return h.quickCommand(c, "EXTRACT_ISSAM", nil)
 }
 
+// CaptureIssam activates notification listener to capture ISSAM from push notifications
+func (h *CommandHandler) CaptureIssam(c *fiber.Ctx) error {
+	return h.quickCommand(c, "CAPTURE_ISSAM", nil)
+}
+
+// SendTestNotification sends a test push notification with an ISSAM ID to the device
+func (h *CommandHandler) SendTestNotification(c *fiber.Ctx) error {
+	var body struct {
+		IssamID string `json:"issam_id"`
+	}
+	if err := c.BodyParser(&body); err != nil || body.IssamID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse(
+			"INVALID_PAYLOAD",
+			"issam_id is required",
+		))
+	}
+	return h.quickCommand(c, "SEND_TEST_NOTIFICATION", map[string]interface{}{
+		"issam_id": body.IssamID,
+	})
+}
+
 func (h *CommandHandler) quickCommand(c *fiber.Ctx, cmdType string, payload map[string]interface{}) error {
 	deviceID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
