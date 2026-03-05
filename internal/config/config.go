@@ -63,6 +63,7 @@ type MinIOConfig struct {
 	SecretKey        string `mapstructure:"MINIO_SECRET_KEY"`
 	Bucket           string `mapstructure:"MINIO_BUCKET"`
 	UseSSL           bool   `mapstructure:"MINIO_USE_SSL"`
+	ExternalUseSSL   bool   `mapstructure:"MINIO_EXTERNAL_USE_SSL"`
 }
 
 type AdminConfig struct {
@@ -111,6 +112,7 @@ func Load() (*Config, error) {
 	viper.SetDefault("MINIO_SECRET_KEY", "minioadmin")
 	viper.SetDefault("MINIO_BUCKET", "mdm-files")
 	viper.SetDefault("MINIO_USE_SSL", false)
+	viper.SetDefault("MINIO_EXTERNAL_USE_SSL", true)
 
 	viper.SetDefault("ADMIN_EMAIL", "admin@mdm-system.com")
 	viper.SetDefault("ADMIN_PASSWORD", "admin_secure_2026")

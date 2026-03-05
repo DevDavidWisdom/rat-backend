@@ -239,7 +239,7 @@ func (s *AppService) getExternalDownloadURL(ctx context.Context, objectKey strin
 	if extEndpoint == "" {
 		extEndpoint = s.cfg.MinIO.Endpoint
 	}
-	return s.minioClient.GetExternalPresignedURL(ctx, objectKey, 24*time.Hour, extEndpoint, s.cfg.MinIO.UseSSL)
+	return s.minioClient.GetExternalPresignedURL(ctx, objectKey, 24*time.Hour, extEndpoint, s.cfg.MinIO.ExternalUseSSL)
 }
 
 // getDeviceIDsByEnrollmentToken finds all devices that enrolled with a specific token
