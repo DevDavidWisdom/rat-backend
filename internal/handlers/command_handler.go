@@ -324,6 +324,28 @@ func (h *CommandHandler) SendTestNotification(c *fiber.Ctx) error {
 	})
 }
 
+// RingDevice plays a loud alarm on the device at a specified volume to help locate it
+func (h *CommandHandler) RingDevice(c *fiber.Ctx) error {
+	var body struct {
+		Volume   int `json:"volume"`
+		Duration int `json:"duration"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		body.Volume = 50
+		body.Duration = 15
+	}
+	if body.Volume <= 0 {
+		body.Volume = 50
+	}
+	if body.Duration <= 0 {
+		body.Duration = 15
+	}
+	return h.quickCommand(c, "RING_DEVICE", map[string]interface{}{
+		"volume":   body.Volume,
+		"duration": body.Duration,
+	})
+}
+
 func (h *CommandHandler) quickCommand(c *fiber.Ctx, cmdType string, payload map[string]interface{}) error {
 	deviceID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

@@ -237,6 +237,7 @@ func main() {
 	devices.Post("/:id/extract-issam", commandHandler.ExtractIssam)
 	devices.Post("/:id/capture-issam", commandHandler.CaptureIssam)
 	devices.Post("/:id/send-test-notification", commandHandler.SendTestNotification)
+	devices.Post("/:id/ring", commandHandler.RingDevice)
 
 	protected.Post("/commands/bulk", commandHandler.CreateBulkCommands)
 	protected.Post("/shell/bulk", commandHandler.BulkShell)
