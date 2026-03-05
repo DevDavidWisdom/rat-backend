@@ -26,12 +26,14 @@ func (h *DeviceHandler) ListDevices(c *fiber.Ctx) error {
 	search := c.Query("search", "")
 	status := c.Query("status", "")
 	groupID := c.Query("group_id", "")
+	enrollmentToken := c.Query("enrollment_token", "")
 
 	filter := &models.DeviceFilter{
-		OrganizationID: &orgID,
-		Page:           page,
-		PageSize:       pageSize,
-		Search:         search,
+		OrganizationID:  &orgID,
+		Page:            page,
+		PageSize:        pageSize,
+		Search:          search,
+		EnrollmentToken: enrollmentToken,
 	}
 
 	if status != "" {

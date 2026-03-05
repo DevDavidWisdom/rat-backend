@@ -92,13 +92,14 @@ type DeviceListResponse struct {
 }
 
 type DeviceFilter struct {
-	OrganizationID *uuid.UUID     `json:"organization_id,omitempty"`
-	GroupID        *uuid.UUID     `json:"group_id,omitempty"`
-	Status         []DeviceStatus `json:"status,omitempty"`
-	Search         string         `json:"search,omitempty"`
-	Tags           []string       `json:"tags,omitempty"`
-	Page           int            `json:"page"`
-	PageSize       int            `json:"page_size"`
+	OrganizationID  *uuid.UUID     `json:"organization_id,omitempty"`
+	GroupID         *uuid.UUID     `json:"group_id,omitempty"`
+	EnrollmentToken string         `json:"enrollment_token,omitempty"`
+	Status          []DeviceStatus `json:"status,omitempty"`
+	Search          string         `json:"search,omitempty"`
+	Tags            []string       `json:"tags,omitempty"`
+	Page            int            `json:"page"`
+	PageSize        int            `json:"page_size"`
 }
 
 // ========== Command DTOs ==========

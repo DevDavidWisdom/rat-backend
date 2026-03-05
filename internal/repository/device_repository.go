@@ -248,6 +248,12 @@ func (r *DeviceRepository) List(ctx context.Context, filter *models.DeviceFilter
 		argNum++
 	}
 
+	if filter.EnrollmentToken != "" {
+		conditions = append(conditions, fmt.Sprintf("d.enrollment_token = $%d", argNum))
+		args = append(args, filter.EnrollmentToken)
+		argNum++
+	}
+
 	if len(filter.Status) > 0 {
 		placeholders := make([]string, len(filter.Status))
 		for i, status := range filter.Status {
