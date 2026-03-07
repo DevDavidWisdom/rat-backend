@@ -150,6 +150,9 @@ type TelemetryReport struct {
 	ForegroundApp *string `json:"foreground_app,omitempty"`
 	CurrentUrl    *string `json:"current_url,omitempty"`
 	LinkSpeedMbps *int    `json:"link_speed_mbps,omitempty"`
+
+	// v1.3 lock status
+	IsDeviceLocked *bool `json:"is_device_locked,omitempty"`
 }
 
 // ========== Group DTOs ==========

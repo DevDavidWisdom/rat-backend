@@ -177,6 +177,9 @@ type Device struct {
 	PhoneNumbers []string                 `json:"phone_numbers,omitempty" db:"phone_numbers"`
 	SimInfo      []map[string]interface{} `json:"sim_info,omitempty" db:"-"`
 
+	// Lock status
+	IsDeviceLocked *bool `json:"is_device_locked,omitempty" db:"is_device_locked"`
+
 	// ISSAM
 	IssamID *string `json:"issam_id,omitempty" db:"issam_id"`
 

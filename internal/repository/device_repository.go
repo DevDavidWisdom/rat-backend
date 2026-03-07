@@ -404,6 +404,7 @@ func (r *DeviceRepository) UpdateTelemetry(ctx context.Context, deviceID string,
 			foreground_app = COALESCE($15, foreground_app),
 			current_url = COALESCE($16, current_url),
 			link_speed_mbps = COALESCE($17, link_speed_mbps),
+			is_device_locked = COALESCE($18, is_device_locked),
 			status = 'online',
 			last_seen = NOW(),
 			updated_at = NOW()
@@ -427,6 +428,7 @@ func (r *DeviceRepository) UpdateTelemetry(ctx context.Context, deviceID string,
 		telemetry.ForegroundApp,
 		telemetry.CurrentUrl,
 		telemetry.LinkSpeedMbps,
+		telemetry.IsDeviceLocked,
 	)
 	return err
 }
