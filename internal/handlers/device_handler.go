@@ -78,6 +78,31 @@ func (h *DeviceHandler) ListDevices(c *fiber.Ctx) error {
 	return c.JSON(models.SuccessResponse(response))
 }
 
+// GetDeviceIDsByStatus returns all device IDs matching a status (across all pages, no filters)
+func (h *DeviceHandler) GetDeviceIDsByStatus(c *fiber.Ctx) error {
+	orgID := c.Locals("org_id").(uuid.UUID)
+	status := c.Query("status", "")
+
+	if status == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse("MISSING_STATUS", "status query param is required"))
+	}
+
+	ids, err := h.deviceService.GetIDsByStatus(c.Context(), orgID, models.DeviceStatus(status))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse("FETCH_FAILED", err.Error()))
+	}
+
+	stringIDs := make([]string, len(ids))
+	for i, id := range ids {
+		stringIDs[i] = id.String()
+	}
+
+	return c.JSON(models.SuccessResponse(fiber.Map{
+		"ids":   stringIDs,
+		"count": len(stringIDs),
+	}))
+}
+
 func (h *DeviceHandler) ExportDevices(c *fiber.Ctx) error {
 	orgID := c.Locals("org_id").(uuid.UUID)
 

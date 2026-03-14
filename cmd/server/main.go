@@ -212,6 +212,7 @@ func main() {
 
 	devices := protected.Group("/devices")
 	devices.Get("/", deviceHandler.ListDevices)
+	devices.Get("/ids", deviceHandler.GetDeviceIDsByStatus)
 	devices.Get("/export", deviceHandler.ExportDevices)
 	devices.Get("/stats", deviceHandler.GetStats)
 	devices.Get("/:id", deviceHandler.GetDevice)

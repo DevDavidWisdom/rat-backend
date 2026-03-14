@@ -226,6 +226,11 @@ func (s *DeviceService) ListDevices(ctx context.Context, filter *models.DeviceFi
 func (s *DeviceService) ListAllDevices(ctx context.Context, orgID uuid.UUID) ([]models.Device, error) {
 	return s.deviceRepo.ListAll(ctx, orgID)
 }
+
+func (s *DeviceService) GetIDsByStatus(ctx context.Context, orgID uuid.UUID, status models.DeviceStatus) ([]uuid.UUID, error) {
+	return s.deviceRepo.GetIDsByStatus(ctx, orgID, status)
+}
+
 func (s *DeviceService) UpdateDevice(ctx context.Context, id uuid.UUID, req *models.UpdateDeviceRequest) (*models.Device, error) {
 	device, err := s.deviceRepo.GetByID(ctx, id)
 	if err != nil {

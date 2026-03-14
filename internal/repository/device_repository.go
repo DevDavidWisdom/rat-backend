@@ -636,6 +636,25 @@ func (r *DeviceRepository) GetAllIDs(ctx context.Context, orgID uuid.UUID) ([]uu
 	return ids, nil
 }
 
+func (r *DeviceRepository) GetIDsByStatus(ctx context.Context, orgID uuid.UUID, status models.DeviceStatus) ([]uuid.UUID, error) {
+	query := `SELECT id FROM devices WHERE organization_id = $1 AND status = $2`
+	rows, err := r.pool.Query(ctx, query, orgID, status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
+}
+
 // GetOnlineIDsByGroupID returns IDs of devices in a group that are currently online.
 func (r *DeviceRepository) GetOnlineIDsByGroupID(ctx context.Context, groupID uuid.UUID) ([]uuid.UUID, error) {
 	query := `SELECT id FROM devices WHERE group_id = $1 AND status = 'online'`
