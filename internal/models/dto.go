@@ -98,6 +98,10 @@ type DeviceFilter struct {
 	Status          []DeviceStatus `json:"status,omitempty"`
 	Search          string         `json:"search,omitempty"`
 	Tags            []string       `json:"tags,omitempty"`
+	IssamSearch     string         `json:"issam_search,omitempty"`
+	IssamFilter     string         `json:"issam_filter,omitempty"` // "has", "missing", or ""
+	LastSeenFrom    *time.Time     `json:"last_seen_from,omitempty"`
+	LastSeenTo      *time.Time     `json:"last_seen_to,omitempty"`
 	Page            int            `json:"page"`
 	PageSize        int            `json:"page_size"`
 }

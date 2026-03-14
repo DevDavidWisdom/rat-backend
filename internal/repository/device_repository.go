@@ -274,6 +274,33 @@ func (r *DeviceRepository) List(ctx context.Context, filter *models.DeviceFilter
 		argNum++
 	}
 
+	// ISSAM ID search (text search within issam_id)
+	if filter.IssamSearch != "" {
+		issamPattern := "%" + filter.IssamSearch + "%"
+		conditions = append(conditions, fmt.Sprintf("d.issam_id ILIKE $%d", argNum))
+		args = append(args, issamPattern)
+		argNum++
+	}
+
+	// ISSAM ID filter (has / missing)
+	if filter.IssamFilter == "has" {
+		conditions = append(conditions, "d.issam_id IS NOT NULL AND d.issam_id != ''")
+	} else if filter.IssamFilter == "missing" {
+		conditions = append(conditions, "(d.issam_id IS NULL OR d.issam_id = '')")
+	}
+
+	// Last seen date range
+	if filter.LastSeenFrom != nil {
+		conditions = append(conditions, fmt.Sprintf("d.last_seen >= $%d", argNum))
+		args = append(args, *filter.LastSeenFrom)
+		argNum++
+	}
+	if filter.LastSeenTo != nil {
+		conditions = append(conditions, fmt.Sprintf("d.last_seen <= $%d", argNum))
+		args = append(args, *filter.LastSeenTo)
+		argNum++
+	}
+
 	whereClause := strings.Join(conditions, " AND ")
 
 	// Count query
@@ -300,6 +327,7 @@ func (r *DeviceRepository) List(ctx context.Context, filter *models.DeviceFilter
 		       d.sdk_version, d.agent_version, d.status, d.last_seen, d.enrolled_at,
 		       d.battery_level, d.storage_total, d.storage_available, d.network_type,
 		       d.ip_address, d.latitude, d.longitude, d.tags, d.created_at, d.updated_at,
+		       d.issam_id,
 		       g.name as group_name, et.name as enrollment_name
 		FROM devices d
 		LEFT JOIN device_groups g ON d.group_id = g.id
@@ -345,6 +373,7 @@ func (r *DeviceRepository) List(ctx context.Context, filter *models.DeviceFilter
 			&device.Tags,
 			&device.CreatedAt,
 			&device.UpdatedAt,
+			&device.IssamID,
 			&device.GroupName,
 			&device.EnrollmentName,
 		)

@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -28,6 +29,10 @@ func (h *DeviceHandler) ListDevices(c *fiber.Ctx) error {
 	status := c.Query("status", "")
 	groupID := c.Query("group_id", "")
 	enrollmentToken := c.Query("enrollment_token", "")
+	issamSearch := c.Query("issam_search", "")
+	issamFilter := c.Query("issam_filter", "")
+	lastSeenFrom := c.Query("last_seen_from", "")
+	lastSeenTo := c.Query("last_seen_to", "")
 
 	filter := &models.DeviceFilter{
 		OrganizationID:  &orgID,
@@ -35,6 +40,19 @@ func (h *DeviceHandler) ListDevices(c *fiber.Ctx) error {
 		PageSize:        pageSize,
 		Search:          search,
 		EnrollmentToken: enrollmentToken,
+		IssamSearch:     issamSearch,
+		IssamFilter:     issamFilter,
+	}
+
+	if lastSeenFrom != "" {
+		if t, err := time.Parse(time.RFC3339, lastSeenFrom); err == nil {
+			filter.LastSeenFrom = &t
+		}
+	}
+	if lastSeenTo != "" {
+		if t, err := time.Parse(time.RFC3339, lastSeenTo); err == nil {
+			filter.LastSeenTo = &t
+		}
 	}
 
 	if status != "" {
