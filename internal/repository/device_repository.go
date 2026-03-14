@@ -289,6 +289,13 @@ func (r *DeviceRepository) List(ctx context.Context, filter *models.DeviceFilter
 		conditions = append(conditions, "(d.issam_id IS NULL OR d.issam_id = '')")
 	}
 
+	// Agent version filter
+	if filter.AgentVersion != "" {
+		conditions = append(conditions, fmt.Sprintf("d.agent_version = $%d", argNum))
+		args = append(args, filter.AgentVersion)
+		argNum++
+	}
+
 	// Last seen date range
 	if filter.LastSeenFrom != nil {
 		conditions = append(conditions, fmt.Sprintf("d.last_seen >= $%d", argNum))

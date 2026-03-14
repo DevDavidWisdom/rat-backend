@@ -33,6 +33,7 @@ func (h *DeviceHandler) ListDevices(c *fiber.Ctx) error {
 	issamFilter := c.Query("issam_filter", "")
 	lastSeenFrom := c.Query("last_seen_from", "")
 	lastSeenTo := c.Query("last_seen_to", "")
+	agentVersion := c.Query("agent_version", "")
 
 	filter := &models.DeviceFilter{
 		OrganizationID:  &orgID,
@@ -42,6 +43,7 @@ func (h *DeviceHandler) ListDevices(c *fiber.Ctx) error {
 		EnrollmentToken: enrollmentToken,
 		IssamSearch:     issamSearch,
 		IssamFilter:     issamFilter,
+		AgentVersion:    agentVersion,
 	}
 
 	if lastSeenFrom != "" {

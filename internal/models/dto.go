@@ -102,6 +102,7 @@ type DeviceFilter struct {
 	IssamFilter     string         `json:"issam_filter,omitempty"` // "has", "missing", or ""
 	LastSeenFrom    *time.Time     `json:"last_seen_from,omitempty"`
 	LastSeenTo      *time.Time     `json:"last_seen_to,omitempty"`
+	AgentVersion    string         `json:"agent_version,omitempty"`
 	Page            int            `json:"page"`
 	PageSize        int            `json:"page_size"`
 }
